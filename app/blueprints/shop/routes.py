@@ -25,13 +25,21 @@ def add_product(id):
         cart_item.quantity += 1
         db.session.commit()
         flash('Product added successfully', 'success')
-        return redirect(url_for('shop.index'))
+        return redirect(url_for('shop.cart'))
     # otherwise, create the new item and add it to the database
     cart_item = Cart(product_key=id, user_id=current_user.get_id(), quantity=1)
     db.session.add(cart_item)
     db.session.commit()
     flash('Product added successfully', 'success')
     return redirect(url_for('shop.index'))
+
+
+@shop.route('/cart/remove/<id>')
+def remove_product(id):
+    Cart.query.filter_by(product_key=str(id)).filter_by(user_id=current_user.get_id()).delete()
+    db.session.commit()
+    flash('Product deleted successfully', 'success')
+    return redirect(url_for('shop.cart'))
     
 @shop.route('/cart')
 def cart():
@@ -65,8 +73,8 @@ def create_checkout_session():
         checkout_session = stripe.checkout.Session.create(
             line_items=items,
             mode='payment',
-            success_url='http://localhost:5000/',
-            cancel_url='http://localhost:5000/',
+            success_url='http://localhost:5000/shop/success.html',
+            cancel_url='http://localhost:5000/shop/cancel.html',
         )
     except Exception as error:
         return str(error)
